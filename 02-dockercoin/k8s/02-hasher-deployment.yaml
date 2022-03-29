@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: hasher
+spec:
+  replicas: 1
+  selector: 
+    matchLabels:
+      app: hasher
+  template:
+    metadata:
+      labels: 
+        app: hasher
+    spec:
+      containers:
+      - name: hasher
+        image: fabiogomez28/hasher:v1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+        resources:
+          requests: 
+            memory: "64Mi"
+            cpu: "200m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+

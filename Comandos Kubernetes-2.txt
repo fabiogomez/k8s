@@ -1,0 +1,208 @@
+gcloud container clusters get-credentials platzi-cluster --zone us-central1-a --project vast-nectar-317912
+kubectl get pods
+kubectl get nodes
+kubectl get svc
+kubectl get nodes -o wide
+kubectl explain node.spec
+kubectl get pods --all-namespaces
+kubectl get pods -n kube-system
+kubectl get secrets -n kube-public
+kubectl apply -f pinpong.yaml
+kubectl get all
+kubectl logs --tail 20 deployment.apps/pingpong-deployment
+kubectl logs -l run=pingpong
+kubectl create deployment pingpong --image=alpine -- ping 1.1.1.1
+kubectl create deployment --dry-run -o yaml pingpong --image=alpine -- ping 1.1.1.1# mostrar el manifest file
+kubectl create deployment httpenv --image jpetazzo/httpenv
+kubectl scale deployment httpenv --replicas=10
+kubectl expose deployment httpenv --port=8888
+kubectl exec --stdin --tty httpenv-57b8868f99-5xrgf  -- /bin/sh
+for i in $(seq 10); do curl -s  http://10.28.4.45:8888 |jq .HOSTNAME; done
+kubectl describe service httpenv
+kubectl describe endpoints httpenv 
+kubectl get endpoints httpenv -o yaml
+kubectl get nodes
+kubectl create deployment redis --image=redis
+ kubectl create deployment hasher --image=dockercoins/hasher:v0.1
+kubectl create deployment rng --image=dockercoins/rng:v0.1
+kubectl create deployment webui --image=dockercoins/webui:v0.1
+kubectl get pods
+kubectl create deployment worker --image=dockercoins/worker:v0.1
+kubectl logs deploy/rng
+kubectl logs deploy/worker
+kubectl get pods
+kubectl expose deployment redis --port 6379
+kubectl logs deploy/worker
+kubectl expose deployment rng --port 80
+kubectl expose deployment hasher --port 80
+kubectl expose deploy/webui --type=NodePort --port=80
+kubectl logs deploy/worker
+kubectl get svc
+kubectl get services kubernetes
+kubectl proxy & #proxy api kubernetes
+kubectl port-forward svc/redis 10000:6379 & #redireccionar un puerto de mi maquina local a un puerto de un servicio cluster IP 
+kubectl port-forward service/kubernetes-dashboard -n kubernetes-dashboard 8443:443 #Luego abren en su navegador https://localhost:8443
+
+gcloud compute firewall-rules create cluster-platzi-kube-dashboard --allow tcp:30786
+
+kubectl edit service kubernetes-dashboard -n kube-system# edit servie
+
+kind: DeamontSet # se ejecuta un pod por nodo  del servicio
+kubectl get deploy/rng -o yaml > rng.yml
+nano rng.yml
+kubectl apply -f rng.yml --validate=false
+kubectl get all
+kubectl get pods -o wide
+kubectl describe service rng
+kubectl get pods --selector= app=rng
+kubectl get pods --selector=app=rng
+kubectl label pod rng-5d8b6c4cff-vg65v app-
+kubectl get pods
+kubectl get pods --selector=app=rng -w
+kubectl get pods --selector=app=rng
+kubectl get deploy -o json | jq ".items[] | {name:.metadata.name} + .spec.strategy.rollingUpdate"
+kubectl set image deploy worker worker=dockercoins/worker:v0.2 #update images kubernetes
+kubectl set image deploy worker worker=dockercoins/worker:v0.2
+kubectl set image deploy worker worker=dockercoins/worker:v0.3
+kubectl set image deploy worker worker=dockercoins/worker:v0.2
+kubectl get deploy
+kubectl set image deploy worker worker=dockercoins/worker:v0.3
+kubectl get deploy
+ kubectl get pods
+kubectl rollout undo deploy worker#devuelve a la ultima version de los pods
+kubectl edit deploy worker
+kubectl rollout status deployment worker
+kubectl set image deploy worker worker=dockercoins/worker:v0.3
+kubectl rollout undo deploy worker
+
+kubectl get pods -n kube-system
+curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+helm init
+kubectl get pods -n kube-system
+kubectl create clusterrolebinding add-on-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:default
+helm search prometheus
+helm inspect stable/prometheus
+helm install stable/prometheus --set server.service.type=NodePort --set server.persistentVolume.enabled=false
+kubectl get svc
+gcloud compute firewall-rules create cluster-platzi-kube-dashboard --allow tcp:30786
+gcloud compute firewall-rules create cluster-platzi-prometheus-server --allow tcp:32237
+helm create dockercoins
+cd dockercoins
+mv templates/ templates-old
+mkdir templates
+cd ..
+ kubectl get -o yaml --export deployment worker
+kubectl get -o yaml  deployment worker
+  384  while read kind name; do kubectl get -o yaml --export $kind $name > dockercoins/templates/$name-$kind.yaml
+  385  done <<EOF
+  386  deployment worker
+  387  deployment hasher
+  388  daemonset rng
+  389  deployment webui
+  390  deployment redis
+  391  service hasher
+  392  service rng
+  393  service webui
+  394  service redis  
+ 
+  434  while read kind name; do kubectl get -o yaml $kind $name > dockercoins/templates/$name-$kind.yaml
+  435  done <<EOF
+  436  deployment worker
+  437  deployment hasher
+  438  daemonset rng
+  439  deployment webui
+  440  deployment redis
+  441  service hasher
+  442  service rng
+  443  service webui
+  444  service redis
+  445  EOF
+
+
+ 
+
+
+#export_script.sh
+while read kind name; do
+kubectl get -o yaml $kind $name > dockercoins/templates/$name-$kind.yaml
+done <<EOF
+deployment worker
+deployment hasher
+daemonset rng
+deployment webui
+deployment redis
+service hasher
+service rng
+service webui
+service redis
+EOF
+
+#create configmaps
+kubectl create configmap haproxy --from-file=haproxy.cfg
+#see configmaps
+kubectl get configmap haproxy -o yaml | less
+kubectl apply -f haproxy.yaml
+kubectl create configmap registry --from-literal=http.addr=0.0.0.0:80
+vi registry.yaml
+kubectl apply -f  registry.yaml
+
+#create namespaces
+kubectl apply -f nginx-with-volume.yaml
+  480  kubectl describe pod  nginx-with-volume
+  485  kubectl get namespaces
+  486  kubectl create namespace blue
+  487  kubectl -n blue svc
+  488  kubectl -n blue get svc
+  490  kubectl config get-contexts
+  491  kubectl config set-context --current --namespace=blue
+helm install dockercoins/
+  470  helm install --namespace=blue  dockercoins/
+kubectl get secrets
+kubectl get secret default-token-ghkjr  -o jsonpath="{['data']['ca\.crt']}" | base64 --decode
+
+kubectl get secret default-token-ghkjr  -o json | jq -r .data.token | base64 -d #obtiene token de auth
+
+--Crear el service account
+kubectl create sa viewer
+
+--Crear el RoleBinding
+kubectl create rolebinding viewercanview --clusterrole=view --serviceaccount=default:viewer
+
+--Correr el pod
+kubectl run eyepod --rm -ti --restart=Never --serviceaccount=viewer --image alpine
+
+--Dentro del pod, obtener la última versión estable de kubernetes
+curl https://storage.googleapis.com/kubernetes-release/release/stable.txt
+
+--Descargar la versión de kubectl
+curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.20.1/bin/linux/amd64/kubectl
+
+--Hacer a kubectl ejecutable
+
+chmod +x ./kubectl
+
+--Obtener todo
+
+./kubectl get all
+
+./kubectl create deployment testrab --image nginx#no tiene permisos para crear
+
+--Preguntas de authorization
+
+
+./kubectl auth can-i list nodes
+
+./kubectl auth can-i create pods
+
+./kubectl auth can-i get pods
+
+--Obtener RoleBindings
+
+kubectl get clusterrolebindings -o yaml | grep -e kubernetes-admin -e system:masters
+
+kubectl describe clusterrolebinding cluster-admin
+
+
+kubectl scale --replicas=20 deployment hello
+
+
