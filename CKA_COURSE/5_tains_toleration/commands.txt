@@ -1,0 +1,7 @@
+//NoSchedule|PreferNoSchedule|NoExecute
+
+kubectl taint nodes docker-desktop app=frontend:NoExecute
+//untaint
+kubectl taint nodes docker-desktop app=frontend:NoExecute-
+
+//the pod need to be delete to change this config

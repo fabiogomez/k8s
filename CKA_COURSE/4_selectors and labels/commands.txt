@@ -1,0 +1,3 @@
+kubectl get pods --selector app=App1
+
+kubectl get pods --selector bu=finance,env=prod,tier=frontend
