@@ -1,0 +1,1 @@
+//si no se establecen request pero si limites, k8s setea el request=limits

@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: redpod
+  name: redpod
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: redpod
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: redpod
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: color
+                operator: In
+                values:
+                - red
+      tolerations:
+      - key: "color"
+        operator: "Equal"
+        value: "red"
+        effect: "NoSchedule"
+      containers:
+      - image: nginx
+        name: nginx
+        resources: {}
+status: {}

@@ -1,0 +1,21 @@
+kubectl taint nodes controlplane color=red:NoSchedule
+kubectl taint nodes node01 color=blue:NoSchedule
+
+//create deployment instead of pod to increase the replicas
+
+// label the node
+kubectl label node controlplane color=red
+kubectl label node node01 color=blue
+
+kubectl apply -f red-deployment.yaml 
+kubectl apply -f blue-deployment.yaml 
+
+
+//result
+NAME                      READY   STATUS    RESTARTS   AGE   IP           NODE           NOMINATED NODE   READINESS GATES
+bluepod-dc4b4684-d9wjr    1/1     Running   0          9s    10.244.1.2   node01         <none>           <none>
+bluepod-dc4b4684-dpm5z    1/1     Running   0          9s    10.244.1.3   node01         <none>           <none>
+bluepod-dc4b4684-w6pmw    1/1     Running   0          9s    10.244.1.4   node01         <none>           <none>
+redpod-7f9b4c5bd9-5vbls   1/1     Running   0          12m   10.244.0.6   controlplane   <none>           <none>
+redpod-7f9b4c5bd9-jcvww   1/1     Running   0          12m   10.244.0.4   controlplane   <none>           <none>
+redpod-7f9b4c5bd9-sp5rl   1/1     Running   0          12m   10.244.0.5   controlplane   <none>           <none>
