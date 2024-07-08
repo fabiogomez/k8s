@@ -1,0 +1,15 @@
+kubectl rollout status deployment/myapp-deployment
+kubectl rollout history deployment/myapp-deployment
+
+deployment startegy
+rolling update //default
+recreate
+
+
+kubectl apply -f 
+
+
+
+kubectl set image
+
+kubectl rollout undo deployment/myapp-deployment

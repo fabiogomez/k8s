@@ -1,0 +1,8 @@
+the static pods has a the name of  node at final
+kube-scheduler-{node name}
+
+//the folder for statics pods is 
+/etc/kubernetes/manifests
+
+//the config file for kubelet
+cat /var/lib/kubelet/config.yaml 
