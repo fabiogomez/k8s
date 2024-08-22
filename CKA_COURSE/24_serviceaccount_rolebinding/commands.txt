@@ -1,0 +1,15 @@
+#
+kubectl create serviceaccount dashboard-sa
+kubectl get serviceaccounts
+kubectl describe serviceaccount dashboard-sa
+
+kubectl exec -it web-dashboard-6cbbc88b59-sw65q -- ls -t /run/secrets/kubernetes.io/serviceaccount
+
+kubectl create token dashboard-sa
+
+
+#add to deplyment pod section service account
+serviceAccountName: dashboard-sa
+automountServiceAccountToken: false
+containers:
+...

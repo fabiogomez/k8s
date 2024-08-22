@@ -1,0 +1,60 @@
+//***********************************
+//controlplane update
+//***********************
+/***********************
+nano /etc/apt/sources.list.d/kubernetes.list //change to 1.30
+kubectl drain controlplane --ignore-daemonsets
+sudo apt update
+
+//upgrade wiki
+https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/
+
+//change file if you will update minor version example 1.29.0 => 1.30.0
+https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/change-package-repository/
+
+sudo apt-cache madison kubeadm
+
+sudo apt-mark unhold kubeadm && \
+sudo apt-get update && sudo apt-get install -y kubeadm='1.30.0-1.1' && \
+sudo apt-mark hold kubeadm
+
+kubeadm version
+
+sudo kubeadm upgrade plan
+
+kubeadm upgrade apply v1.30.0
+
+sudo apt-mark unhold kubelet kubectl && \
+sudo apt-get update && sudo apt-get install -y kubelet='1.30.0-1.1' kubectl='1.30.0-1.1' && \
+sudo apt-mark hold kubelet kubectl
+
+sudo systemctl daemon-reload
+sudo systemctl restart kubelet
+
+//uncordon
+kubectl uncordon controlplane
+
+//***********************************
+//worker node upgrade**************
+//***********************************
+https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/upgrading-linux-nodes/
+kubectl drain node01 --ignore-daemonsets
+
+nano /etc/apt/sources.list.d/kubernetes.list //change to 1.30
+
+sudo apt update
+
+sudo apt-mark unhold kubeadm && \
+sudo apt-get update && sudo apt-get install -y kubeadm='1.30.0-1.1' && \
+sudo apt-mark hold kubeadm
+
+sudo kubeadm upgrade node
+
+sudo apt-mark unhold kubelet kubectl && \
+sudo apt-get update && sudo apt-get install -y kubelet='1.30.0-1.1' kubectl='1.30.0-1.1' && \
+sudo apt-mark hold kubelet kubectl
+
+sudo systemctl daemon-reload
+sudo systemctl restart kubelet
+
+kubectl uncordon node01

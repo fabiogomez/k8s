@@ -1,0 +1,38 @@
+openssl x509 -in file-path.crt -text -noout
+openssl x509 -in /etc/kubernetes/pki/apiserver.crt -text -noout
+openssl x509 -in /etc/kubernetes/pki/etcd/server.crt -text -noout
+openssl x509 -in /etc/kubernetes/pki/ca.crt -text -noout
+openssl x509 -in /etc/kubernetes/pki/apiserver-etcd-client.crt -text -noout
+
+
+//list all pods 
+crictl ps -a
+crictl logs  <container-id>
+crictl stopp podid
+crictl stopp containjerid
+
+
+//path schedule containers
+/etc/kubernetes/manifests/etcd.yaml
+
+openssl genrsa -out jane.key 2048
+openssl req -new -key jane.key -subj "/CN=jane" -out jane.csr
+
+
+cat <<EOF | kubectl apply -f -
+apiVersion: certificates.k8s.io/v1
+kind: CertificateSigningRequest
+metadata:
+  name: akshay
+spec:
+  request: $(cat akshay.csr | base64 | tr -d '\n')
+  signerName: kubernetes.io/kube-apiserver-client
+  expirationSeconds: 86400  # one day
+  usages:
+  - client auth
+EOF
+
+kubectl get csr
+kubectl certificate approve akshay
+kubectl certificate deny agent-smith
+ kubectl delete csr  agent-smith

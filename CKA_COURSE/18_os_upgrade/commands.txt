@@ -1,0 +1,7 @@
+//move all the pods inside the node to tohers nodes it will helpfull for maintaining tasks
+kubectl drain node-1
+//after the maintaining activities we execute this for schedule the pods inside the node again
+kubectl uncordon node-1
+
+// avoid the node schedule pods
+kubectl cordon node-1

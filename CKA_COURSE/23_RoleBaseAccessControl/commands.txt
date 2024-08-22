@@ -1,0 +1,36 @@
+#the roles expecify the permisions over a resource
+kubectl get roles
+
+#the rolebindings expecify wich user have a role
+kubectl get rolebindings
+kubectl describe rolebinding kube-proxy -n kube-system
+
+kubectl describe role developer
+kubectl describe roles kube-proxy -n kube-system
+
+
+#check permisions
+kubectl auth can-i delete nodes
+kubectl auth can-i create deployments
+kubectl auth can-i create deployments --as dev-user --namspace test
+kubectl auth can-i get pods --namespace default --as dev-user
+
+
+
+#cluster roles
+kubectl get clusterroles 
+kubectl get clusterrolebindings
+kubectl describe clusterrolebinding cluster-admin
+ kubectl edit clusterrole cluster-admin
+
+#list all resources available
+ kubectl api-resources
+
+
+ #create clusterroles using kubectl
+
+ kubectl clusterrole storage-admin --resource=persistentvolumes,storageclasses --verb=list,create,get,watch
+
+ kubectl create clusterrolebinding michelle-storage-admin  --user=michelle --clusterrole=storage-admin
+
+ 

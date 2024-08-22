@@ -1,0 +1,119 @@
+//url to reach etc in control  plane
+ --listen-client-urls=https://127.0.0.1:2379,https://192.1.236.3:2379
+
+
+
+export ETCDCTL_API=3
+ etcdctl snapshot save /opt/snapshot-pre-boot.db \
+ --endpoints=https://127.0.0.1:2379 \
+ --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+ --cert=/etc/kubernetes/pki/etcd/server.crt \
+ --key=/etc/kubernetes/pki/etcd/server.key
+
+
+//restore backup
+etcdctl snapshot restore --data-dir /var/lib/etcd-from-backup /opt/snapshot-pre-boot.db
+
+ vi /etc/kubernetes/manifests/etcd.yaml 
+change hostpath and put the folder with the restopre backup
+- hostPath:
+      path: /var/lib/etcd-from-backup
+
+      --advertise-client-urls=https://192.1.236.3:2379
+      --cert-file=/etc/kubernetes/pki/etcd/server.crt  // --cert
+      --client-cert-auth=true
+      --data-dir=/var/lib/etcd
+      --experimental-initial-corrupt-check=true
+      --experimental-watch-progress-notify-interval=5s
+      --initial-advertise-peer-urls=https://192.1.236.3:2380
+      --initial-cluster=controlplane=https://192.1.236.3:2380
+      --key-file=/etc/kubernetes/pki/etcd/server.key // --key
+      --listen-client-urls=https://127.0.0.1:2379,https://192.1.236.3:2379 //--endpoints
+      --listen-metrics-urls=http://127.0.0.1:2381
+      --listen-peer-urls=https://192.1.236.3:2380
+      --name=controlplane
+      --peer-cert-file=/etc/kubernetes/pki/etcd/peer.crt
+      --peer-client-cert-auth=true
+      --peer-key-file=/etc/kubernetes/pki/etcd/peer.key
+      --peer-trusted-ca-file=/etc/kubernetes/pki/etcd/ca.crt
+      --snapshot-count=10000
+      --trusted-ca-file=/etc/kubernetes/pki/etcd/ca.crt //--cacert
+
+      //get context
+      kubectl config get-contexts
+
+      kubectl config use-context cluster1
+
+      //check etc ip
+      kubectl describe pod kube-apiserver-cluster2-controlplane -n kube-system
+      
+      https://192.39.72.21:2379
+
+      //local
+      --etcd-servers=https://127.0.0.1:2379
+
+      //check etcd proccess
+      ssh 192.39.72.21
+      ps -ef | grep etcd
+
+      etcd         822       1  0 20:59 ?        00:02:02 /usr/local/bin/etcd --name etcd-server --data-dir=/var/lib/etcd-data --cert-file=/etc/etcd/pki/etcd.pem --key-file=/etc/etcd/pki/etcd-key.pem --peer-cert-file=/etc/etcd/pki/etcd.pem --peer-key-file=/etc/etcd/pki/etcd-key.pem --trusted-ca-file=/etc/etcd/pki/ca.pem --peer-trusted-ca-file=/etc/etcd/pki/ca.pem --peer-client-cert-auth --client-cert-auth --initial-advertise-peer-urls https://192.39.72.21:2380 --listen-peer-urls https://192.39.72.21:2380 --advertise-client-urls https://192.39.72.21:2379 --listen-client-urls https://192.39.72.21:2379,https://127.0.0.1:2379 --initial-cluster-token etcd-cluster-1 --initial-cluster etcd-server=https://192.39.72.21:2380 --initial-cluster-state new
+root        1049     972  0 23:23 pts/0    00:00:00 grep etcd
+
+      //list members
+      etcdctl  \
+ --endpoints=https://192.40.217.15:2379,https://127.0.0.1:2379  \
+ --cacert=/etc/etcd/pki/ca.pem \
+ --cert=/etc/etcd/pki/etcd.pem \
+ --key=/etc/etcd/pki/etcd-key.pem member list
+
+
+
+export ETCDCTL_API=3
+ etcdctl snapshot save /opt/cluster1.db \
+ --endpoints=https://127.0.0.1:2379 \
+ --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+ --cert=/etc/kubernetes/pki/etcd/server.crt \
+ --key=/etc/kubernetes/pki/etcd/server.key
+
+
+ --advertise-client-urls=https://192.39.72.6:2379
+      --cert-file=/etc/kubernetes/pki/etcd/server.crt
+      --client-cert-auth=true
+      --data-dir=/var/lib/etcd
+      --experimental-initial-corrupt-check=true
+      --experimental-watch-progress-notify-interval=5s
+      --initial-advertise-peer-urls=https://192.39.72.6:2380
+      --initial-cluster=cluster1-controlplane=https://192.39.72.6:2380
+      --key-file=/etc/kubernetes/pki/etcd/server.key
+      --listen-client-urls=https://127.0.0.1:2379,https://192.39.72.6:2379
+      --listen-metrics-urls=http://127.0.0.1:2381
+      --listen-peer-urls=https://192.39.72.6:2380
+      --name=cluster1-controlplane
+      --peer-cert-file=/etc/kubernetes/pki/etcd/peer.crt
+      --peer-client-cert-auth=true
+      --peer-key-file=/etc/kubernetes/pki/etcd/peer.key
+      --peer-trusted-ca-file=/etc/kubernetes/pki/etcd/ca.crt
+      --snapshot-count=10000
+      --trusted-ca-file=/etc/kubernetes/pki/etcd/ca.crt
+
+ scp cluster1-controlplane:/opt/snapshot-pre-boot.db /opt/cluster1.db
+
+//restore
+ ssh 192.39.72.21
+  etcdctl snapshot restore --data-dir /var/lib/etcd-data-new  /opt/cluster1.db
+  scp /opt/cluster2.db 192.39.72.21:/opt/cluster2.db
+   chown -R etcd:etcd /var/lib/etcd-data-new
+vi /etc/systemd/system/etcd.service 
+//new line
+--data-dir=/var/lib/etcd-data-new \
+
+//reload daemon
+systemctl daemon-reload
+//reload service 
+systemctl restart etcd
+systemctl status etcd
+
+kubectl delete pods kube-controller-manager-cluster2-controlplane kube-scheduler-cluster2-controlplane -n kube-system
+
+ssh cluster2-controlplane
+systemctl restart kubelet
