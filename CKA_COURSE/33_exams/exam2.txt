@@ -1,0 +1,97 @@
+ETCDCTL_API=3 etcdctl --endpoints=https://127.0.0.1:2379 \
+  --cacert=/etc/kubernetes/pki/etcd/ca.crt --cert=/etc/kubernetes/pki/etcd/server.crt --key=/etc/kubernetes/pki/etcd/server.key \
+  snapshot save /opt/etcd-backup.db
+
+kubectl run redis-storage --image=redis:alpine  --dry-run=client -o yaml > redis-storage.yaml
+
+nano redis-storage.yaml
+#redis pod with volume 
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: redis-storage
+  name: redis-storage
+spec:
+  containers:
+  - image: redis:alpine
+    name: redis-storage
+    resources: {}
+    volumeMounts:
+    - mountPath: /data/redis
+      name: cache-volume
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+  volumes:
+  - name: cache-volume
+    emptyDir: {}
+status: {}
+
+
+#security context
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: super-user-pod
+  name: super-user-pod
+spec:
+  containers:
+  - image: busybox:1.28
+    name: super-user-pod
+    command: [ "sh", "-c", "sleep 4800" ]
+    resources: {}
+    securityContext:
+     capabilities:
+       add: ["SYS_TIME"]
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always  
+status: {}
+
+
+#pvc claim
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: my-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 10Mi
+  storageClassName: ""
+
+
+  use pvc pod
+  apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: use-pv
+  name: use-pv
+spec:
+  containers:
+  - image: nginx
+    name: use-pv
+    resources: {}
+    volumeMounts:
+      - mountPath: "/data"
+        name: my-pvc
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+  volumes:
+    - name: my-pvc
+      persistentVolumeClaim:
+        claimName: my-pvc
+status: {}
+
+
+kubectl create deployment nginx-deploy  --image=nginx:1.16 --replicas=1 
+
+kubectl set image deployment/nginx-deploy nginx=nginx:1.17

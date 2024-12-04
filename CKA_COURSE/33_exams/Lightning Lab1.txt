@@ -1,0 +1,44 @@
+nano /etc/apt/sources.list.d/kubernetes.list
+
+sudo apt update
+sudo apt-cache madison kubeadm
+
+sudo apt-mark unhold kubeadm && \
+sudo apt-get update && sudo apt-get install -y kubeadm='1.31.0-*' && \
+sudo apt-mark hold kubeadm
+
+sudo kubeadm upgrade plan
+
+sudo kubeadm upgrade apply v1.31.0
+
+kubectl drain controlplane --ignore-daemonsets
+
+# replace x in 1.31.x-* with the latest patch version
+sudo apt-mark unhold kubelet kubectl && \
+sudo apt-get update && sudo apt-get install -y kubelet='1.31.0-*' kubectl='1.31.0-*' && \
+sudo apt-mark hold kubelet kubectl
+
+sudo systemctl daemon-reload
+sudo systemctl restart kubelet
+
+kubectl uncordon controlplane
+
+
+kubectl get deployments -o custom-columns=DEPLOYMENT:.metadata.name,CONTAINER_NAME:.spec.template.spec.containers[*].name,READY_REPLICAS:.status.replicas,NAMESPACE:.metadata.namespace
+
+
+kubectl get pods  --kubeconfig=/root/CKA/admin.kubeconfig
+
+kubectl create deployment nginx-deploy --image=nginx:1.16 --replicas=1
+
+kubectl set image deployment/nginx-deploy nginx=nginx:1.17
+
+kubectl annotate deployment nginx-deploy updateMesssage="Updated nginx image to 1.17"
+
+
+ETCDCTL_API=3  etcdctl --endpoints=https://127.0.0.1:2379 --cacert=/etc/kubernetes/pki/etcd/ca.crt --cert=/etc/kubernetes/pki/etcd/server.crt --key=/etc/kubernetes/pki/etcd/server.key  snapshot save /opt/etcd-backup.db
+
+
+kubectl run secret-1401 --image=busybox  --command -- sleep 4800 -n admin1401   --overrides='{  "spec": { "containers":{ name: "secret-admin" } } }'
+
+kubectl run secret-1401 --image=busybox --namespace admin1401  --command -- sleep 4800

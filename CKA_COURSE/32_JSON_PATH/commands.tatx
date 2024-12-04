@@ -1,0 +1,6 @@
+kubectl get nodes -o jsonpath='{.items[*].metadata.name	'}
+kubectl get nodes -o jsonpath='{.items[*].status.nodeInfo.osImage}'
+kubectl config view --kubeconfig=/root/my-kube-config -o jsonpath='{.users[*].name}'
+kubectl get pv --sort-by=.spec.capacity.storage -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.spec.capacity.storage}{"\n"}{end}'
+kubectl get pv -o custom-columns=NAME:.metadata.name,CAPACITY:.spec.capacity.storage
+kubectl config view --kubeconfig=/root/my-kube-config  -o jsonpath="{.contexts[?(@.context.user=='aws-user')].name}"

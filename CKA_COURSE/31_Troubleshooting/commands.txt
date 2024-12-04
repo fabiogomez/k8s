@@ -1,0 +1,6 @@
+# Get the logs of the previous instance of a pod
+kubectl logs -f web --previous
+kubectl config set-context --current --namespace=beta
+
+
+kubectl apply -f https://reweave.azurewebsites.net/k8s/v1.31/net.yaml

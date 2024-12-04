@@ -1,0 +1,1 @@
+ kubectl create ingress ingress-wear-watch --annotation "nginx.ingress.kubernetes.io/rewrite-target= /"  --rule="/wear=wear-service:8080" --rule="/watch=video-service:8080" -n app-space
